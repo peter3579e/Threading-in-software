@@ -1,0 +1,113 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <time.h>
+#include<sys/types.h>
+
+
+int e, f, lines, columns, *Matrix1, *Matrix2;
+
+
+
+unsigned int c[20][20] = {};
+
+
+struct v {
+    int i; /* row */
+    int j; /* column */
+};
+
+void *opreation(void *param)
+{
+    struct v *data = param;
+    for (int i = 0; i < data->i+1; i++)
+    {
+        for (int j = 0; j < data->j+1; j++)
+        {
+            c [i][j]= 0;
+            for (int k = 0; k <lines; k++)
+            {
+                c[i][j]=c[i][j]+ (*(Matrix1+(lines*i)+k))*(*(Matrix1+j+(columns*k)));
+            }
+        }
+    }
+    // printf("This thread execute [%d][%d]",data->i,data->j);
+        pthread_exit(0);
+}
+
+
+int main(void){
+
+    // dynamic matrix
+    Matrix1 = (int *)malloc(lines * columns * sizeof(int));
+
+    
+    
+    printf ("Type the matrix lines:\t");
+    scanf ("%d", &lines);
+    printf ("Type the matrix columns:\t");
+    scanf ("%d", &columns);
+    for (e = 0; e  <  lines; e++)
+    {
+        for (f =0 ; f < columns; f++)
+        {
+            *(Matrix1+e*columns+f)=e*columns+f;
+            //printf("%4d ",*(Matrix1+e*columns+f));
+           //printf("%4d ",*(Matrix2+e*f+f));
+        }
+        printf("\n");
+    }
+    
+    // dynamic matrix2
+    /*
+    Matrix2 = (int *)malloc(lines * columns * sizeof(int));
+    
+    
+    printf ("Type the matrix lines:\t");
+    scanf ("%d", &lines);
+    printf ("Type the matrix columns:\t");
+    scanf ("%d", &columns);
+    for (e = 0; e  <  lines; e++)
+    {
+        for (f =0 ; f < columns; f++)
+        {
+            *(Matrix2+e*columns+f)=e*columns+f;
+           // printf("%4d ",*(Matrix2+e*columns+f));
+        }
+        printf("\n");
+    }
+    
+    */
+    
+    time_t time= clock();
+    for(int x=0;x<lines;x++)
+        for(int y=0;y<columns;y++)
+        {
+            struct v *data = (struct v *) malloc(sizeof(struct v));
+            data->i = x;
+            data->j = y;
+            pthread_t tid;       //Thread ID
+            pthread_attr_t attr; //Set of thread attributes
+            pthread_attr_init(&attr);
+            pthread_create(&tid,&attr,opreation,data);
+            //Make sure the parent waits for all thread to complete
+            pthread_join(tid, NULL);
+            //count++;
+            //printf("Thread  number %4d\n ",x*lines+y);
+        }
+    
+    time = clock() - time;
+    printf("Exetution time: %4f Sec \n", ((double)time) / CLOCKS_PER_SEC);
+    
+    /*
+    for (int i = 0; i <lines; i++)
+        
+    {
+        for(int j=0; j< columns; j++)
+            //printf("%4d   ",c[i][j]);
+        printf("\n");
+    }
+    */
+    free(Matrix1);
+    free(Matrix2);
+}
